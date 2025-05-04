@@ -17,21 +17,19 @@ def download_video():
         data = request.get_json()
         url = data.get('url')
         if not url:
-            return jsonify({'error': 'Missing URL'}), 400
+            return jsonify({'error': '缺少影片連結'}), 400
 
-        uid = str(uuid.uuid4())[:8]
-        folder = os.path.join(app.config['DOWNLOAD_FOLDER'], uid)
-        os.makedirs(folder)
+        yt = YouTube(url)
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').get_highest_resolution()
+        filename = stream.default_filename
+        output_path = 'downloads'
 
-        yt = YouTube(url, on_progress_callback=on_progress)
-        stream = yt.streams.get_highest_resolution()
-        filepath = stream.download(output_path=folder)
+        os.makedirs(output_path, exist_ok=True)
+        filepath = stream.download(output_path=output_path)
 
         return send_file(filepath, as_attachment=True)
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
