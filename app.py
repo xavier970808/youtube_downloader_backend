@@ -1,15 +1,10 @@
 from flask import Flask, request, send_file, jsonify
-from pytubefix import YouTube
-from pytubefix.cli import on_progress
 from flask_cors import CORS
+from pytubefix import YouTube
 import os
-import uuid
 
 app = Flask(__name__)
 CORS(app)
-
-app.config['DOWNLOAD_FOLDER'] = 'downloads'
-os.makedirs(app.config['DOWNLOAD_FOLDER'], exist_ok=True)
 
 @app.route('/download', methods=['POST'])
 def download_video():
@@ -21,9 +16,7 @@ def download_video():
 
         yt = YouTube(url)
         stream = yt.streams.filter(progressive=True, file_extension='mp4').get_highest_resolution()
-        filename = stream.default_filename
         output_path = 'downloads'
-
         os.makedirs(output_path, exist_ok=True)
         filepath = stream.download(output_path=output_path)
 
@@ -31,6 +24,5 @@ def download_video():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 if __name__ == '__main__':
     app.run(debug=True)
